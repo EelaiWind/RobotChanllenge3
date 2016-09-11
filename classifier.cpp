@@ -61,7 +61,7 @@ void Classifier::loadMeanFile(const string& meanFile)
     float* data = meanBlob.mutable_cpu_data();
     const uint height = meanBlob.height();
     const uint width = meanBlob.width();
-    for (int i = 0; i < m_numChannels; ++i) {
+    for (uint i = 0; i < m_numChannels; ++i) {
         /* Extract an individual channel. */
         Mat channel(height, width, CV_32FC1, data);
         channels.push_back(channel);
