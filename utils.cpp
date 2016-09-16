@@ -77,3 +77,81 @@ vector<Mat> splitIntoSmallImage(const Mat &squareImage)
     }
     return smallImage;
 }
+
+TcpConnection::TcpConnection(const string ip, const short int port)
+{
+    m_clientSocket = socket(AF_INET,SOCK_STREAM,0);
+    if(m_clientSocket < 0){
+        cerr << "socket creation failed : " << strerror(errno) << endl;
+        exit(-1);
+    }
+    cout << "socket create successfully" << endl;
+
+    struct sockaddr_in serverAddress;
+    memset(&serverAddress, 0, sizeof(serverAddress));
+    serverAddress.sin_family=AF_INET;
+    serverAddress.sin_port = htons(port);
+    serverAddress.sin_addr.s_addr = inet_addr(ip.c_str());
+
+    if(connect(m_clientSocket,(struct sockaddr *) &serverAddress, sizeof(struct sockaddr_in))<0){
+        cerr << "Connect failed : " << strerror(errno) << endl;
+        exit(-1);
+    }
+    cout << "Connect successfully" << endl;
+}
+
+TcpConnection::~TcpConnection()
+{
+    close(m_clientSocket);
+}
+
+void TcpConnection::readAngles(double *angles)
+{
+    int bytesRead=0;
+    char readBuffer[BUFFER_SIZE];
+    bytesRead = recv(m_clientSocket, readBuffer ,MAX_NUM , 0);
+    char* points = strtok(readBuffer, ",");
+    for(int i = 0; i < 8; i++) {
+        angles[i] = atof(points);
+        points = strtok(NULL, ",");
+    }
+}
+
+void TcpConnection::sendAngle(double x, double y)
+{
+    std::ostringstream ss;
+    ss<< x << "," << y << ",";
+    char sendBuffer[BUFFER_SIZE];
+    strncpy(sendBuffer, ss.str().c_str(), sizeof(sendBuffer));
+    sendBuffer[BUFFER_SIZE-1]=0;
+
+    if(write(m_clientSocket, sendBuffer, strlen(sendBuffer))==-1){
+        cerr << "send angle error! : " << strerror(errno) << end;
+        exit(-1);
+    }
+    cout << "[Client] send: " << sendBuffer << endl;
+}
+
+Point2d calculatePerspectivePoint(const Mat &perspectivTransformMatrix, const Point2d &sourcePoint)
+{
+    Mat sourcePointMatrix(3,1, CV_64FC1);
+    sourcePointMatrix.at<double>(0,0) = sourcePoint.x;
+    sourcePointMatrix.at<double>(1,0) = sourcePoint.y;
+    sourcePointMatrix.at<double>(2,0) = 1;
+
+    const Mat targetPointMatrix = perspectivTransformMatrix * sourcePointMatrix;
+    const double targetX = targetPointMatrix.at<double>(0,0) / targetPointMatrix.at<double>(2,0);
+    const double targetY = targetPointMatrix.at<double>(1,0) / targetPointMatrix.at<double>(2,0);
+    return Point2d(targetX, targetY);
+}
+
+Point2d calculatePositionFromAngle(const double verticalDistance, const double angleX, const double angleY)
+{
+    return Point2d(verticalDistance*tan(angleX * PI / 180), verticalDistance / cos(angleX * PI / 180) * tan(angleY * PI / 180));
+}
+
+std::pair<double, double> calculateAngleFromPosition(const double verticalDistance, const Point2d position){
+    const double angleX = atan2(position.x, verticalDistance) * 180 / PI;
+    const double angleY = atan2(position.y, verticalDistance / cos(angleX * PI / 180)) * 180 / PI;
+    return std::make_pair(angleX, angleY);
+}
