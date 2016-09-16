@@ -63,7 +63,7 @@ int main(int argc, char * argv[])
             cv::imwrite(oss.str(), smallImages.at(i));
             Prediction prediction = classifier.classify(smallImages.at(i));
             if (prediction.first == TRUCK_LABEL || prediction.first == CAT_LABEL || prediction.first == TRUCK_LABEL){
-                Point2d targetIndex(i/16)+0.5, (i%16)+0.5);
+                Point2d targetIndex((i/16)+0.5, (i%16)+0.5);
                 Point2d targetPoint = calculatePerspectivePoint(perspectiveMatrix, targetIndex);
                 std::pair<double, double> targetAngle = calculateAngleFromPosition(LASER_VERTICAL_DISTANCE, targetPoint);
                 tcpConnection.sendAngle(targetAngle.first, targetAngle.second);
@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
         cout << "Enter 'q' to quit or other caharater to start again = ";
         char command;
         cin >> command;
-        if (command == "q"){
+        if (command == 'q'){
             break;
         }
     }

@@ -107,9 +107,8 @@ TcpConnection::~TcpConnection()
 
 void TcpConnection::readAngles(double *angles)
 {
-    int bytesRead=0;
     char readBuffer[BUFFER_SIZE];
-    bytesRead = recv(m_clientSocket, readBuffer ,MAX_NUM , 0);
+    recv(m_clientSocket, readBuffer , BUFFER_SIZE, 0);
     char* points = strtok(readBuffer, ",");
     for(int i = 0; i < 8; i++) {
         angles[i] = atof(points);
@@ -126,7 +125,7 @@ void TcpConnection::sendAngle(double x, double y)
     sendBuffer[BUFFER_SIZE-1]=0;
 
     if(write(m_clientSocket, sendBuffer, strlen(sendBuffer))==-1){
-        cerr << "send angle error! : " << strerror(errno) << end;
+        cerr << "send angle error! : " << strerror(errno) << endl;
         exit(-1);
     }
     cout << "[Client] send: " << sendBuffer << endl;

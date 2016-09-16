@@ -53,7 +53,7 @@ private:
 };
 
 Point2d calculatePerspectivePoint(const Mat &perspectivTransformMatrix, const Point2d &sourcePoint);
-Point2d calculatePositionFromAngle(const double verticalDistance = LASER_VERTICAL_DISTANCE, const double angleX, const double angleY);
-std::pair<double, double> calculateAngleFromPositio(const double LASER_VERTICAL_DISTANCE, const Point2d position);
+Point2d calculatePositionFromAngle(const double verticalDistance, const double angleX, const double angleY);
+std::pair<double, double> calculateAngleFromPosition(const double verticalDistance, const Point2d position);
 
 #endif

@@ -1,8 +1,8 @@
-CAFFE_PATH= /media/ubuntu/SD/caffe
-CUDA_LIB= /usr/local/cuda/lib
+CAFFE_PATH=/media/ubuntu/aee3f03f-31fc-4296-a788-c0993e0442b3/sdcard/caffe
+CUDA_LIB=-Wl,-rpath,'/usr/local/cuda/lib'
 
 OPENCV_FLAG=`pkg-config --cflags --libs opencv`
-CAFFE_INCLUDE=-I $(CAFFE_PATH)/include -I $(CAFFE_PATH)/build/include -I /usr/local/cuda/include
+CAFFE_INCLUDE=-I $(CAFFE_PATH)/include -I $(CAFFE_PATH)/build/include -I $(CAFFE_PATH)/build/src -I /usr/local/cuda/include
 CAFFE_LIBARY=-L $(CAFFE_PATH)/build/lib -lglog -lboost_system  -lcaffe -Wl,-rpath,'$(CAFFE_PATH)/build/lib'
 
 TARGET=main
