@@ -36,7 +36,7 @@ int main(int argc, char * argv[])
     tcpConnection.readAngles(laserAngels);
     Point2f laserCornerPoints[4];
     for (uint i = 0; i < 4; ++i){
-        laserCornerPoints[i] = calculatePositionFromAngle(LASER_VERTICAL_DISTANCE, laserAngels[i], laserAngels[i+1]);
+        laserCornerPoints[i] = calculatePositionFromAngle(LASER_VERTICAL_DISTANCE, laserAngels[i*2], laserAngels[i*2+1]);
     }
     Mat perspectiveMatrix = cv::getPerspectiveTransform(originalCornerPoints, laserCornerPoints);
     cv::namedWindow("Camera Output", 1);

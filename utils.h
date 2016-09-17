@@ -43,7 +43,7 @@ vector<Mat> splitIntoSmallImage(const Mat &squareImage);
 
 class TcpConnection{
 public:
-    TcpConnection(string ip = "192.168.0.100", short int port = 8000);
+    TcpConnection(string ip = "192.168.1.100", short int port = 8000);
     ~TcpConnection();
     void readAngles(double *angles);
     void sendAngle(double x, double y);
