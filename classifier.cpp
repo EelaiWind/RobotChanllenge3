@@ -12,7 +12,6 @@ Classifier::Classifier(const string& modelFile, const string& weightFile, const 
 Prediction Classifier::classify(const Mat& img)
 {
     vector<float> output = predict(img);
-
     uint maxIndex = 0;
     float maxProbability = output.at(0);
 
@@ -68,14 +67,7 @@ void Classifier::loadMeanFile(const string& meanFile)
         data += height * width;
     }
 
-    /* Merge the separate channels into a single image. */
-    Mat tempMean;
-    cv::merge(channels, tempMean);
-
-    /* Compute the global mean pixel value and create a mean image
-     * filled with this value. */
-    const cv::Scalar channel_mean = mean(tempMean);
-    m_mean = Mat(IMAGE_SIZE, tempMean.type(), channel_mean);
+    cv::merge(channels, m_mean);
 }
 
 vector<float> Classifier::predict(const Mat& img)
@@ -163,5 +155,6 @@ void Classifier::preprocess(const Mat& image, vector<Mat>* inputChannels)
      * input layer of the network because it is wrapped by the Mat
      * objects in inputChannels. */
     cv::split(croppedImage, *inputChannels);
+
     CHECK( reinterpret_cast<float*>(inputChannels->at(0).data) == m_net->input_blobs()[0]->cpu_data()) << "Input channels are not wrapping the input layer of the network.";
 }

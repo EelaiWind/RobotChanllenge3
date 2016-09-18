@@ -55,7 +55,7 @@ int main(int argc, char * argv[])
             oss << "cut_result/image_" << i << ".jpg";
             cv::imwrite(oss.str(), smallImages.at(i));
             Prediction prediction = classifier.classify(smallImages.at(i));
-            if (prediction.first == TRUCK_LABEL || prediction.first == CAT_LABEL || prediction.first == TRUCK_LABEL){
+            if (prediction.first == AUTOMOBILE_LABEL || prediction.first == CAT_LABEL || prediction.first == TRUCK_LABEL){
                 Point2d targetIndex((i/16)+0.5, (i%16)+0.5);
                 Point2d targetPoint = calculatePerspectivePoint(perspectiveMatrix, targetIndex);
                 std::pair<double, double> targetAngle = calculateAngleFromPosition(LASER_VERTICAL_DISTANCE, targetPoint);
