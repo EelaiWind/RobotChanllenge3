@@ -23,10 +23,8 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-static const uint IMAGE_PATCH_WIDTH = 512;
-static const uint IMAGE_PATCH_HEIGHT = 512;
-static const uint CAMERA_WIDTH = 2304;
-static const uint CAMERA_HEIGHT = 1536;
+static const uint IMAGE_PATCH_WIDTH = 2048;
+static const uint IMAGE_PATCH_HEIGHT = 2048;
 
 static const Point2f UPPER_LEFT_POINT(0, 0);
 static const Point2f UPPER_RIGHT_POINT(16, 0);
@@ -40,6 +38,7 @@ void onMouseCallback(int event, int x, int y, int flags, void* parameter);
 vector<Point2f> selectCornerPointsFromCamera();
 Mat clipSquareImage(const Mat &snapshot, const vector<Point2f> &cornerPoints);
 vector<Mat> splitIntoSmallImage(const Mat &squareImage);
+Mat readImageFromCamera();
 
 class TcpConnection{
 public:

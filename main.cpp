@@ -13,9 +13,9 @@ using cv::Point2f;
 using cv::Mat;
 
 static const uint AUTOMOBILE_LABEL = 1;
-static const uint CAT_LABEL = 3;
-static const uint TRUCK_LABEL = 9;
-static const string labels[] = {"airplane", "automobile", "bird", "cat", "dog", "deer", "frog", "hourse", "ship", "truck"};
+static const uint CAT_LABEL = 2;
+static const uint TRUCK_LABEL = 3;
+static const string labels[] = {"other", "automobile", "cat", "truck"};
 
 int main(int argc, char * argv[])
 {
@@ -30,36 +30,29 @@ int main(int argc, char * argv[])
     double laserAngels[8];
     TcpConnection tcpConnection;
 
-    Classifier classifier(modelFile, weightFile, meanFile, 10);
+    Classifier classifier(modelFile, weightFile, meanFile, 4);
 
     vector<Point2f> cornerPoints = selectCornerPointsFromCamera();
+    cout << "Reading Angles ..." << endl;
     tcpConnection.readAngles(laserAngels);
     Point2f laserCornerPoints[4];
     for (uint i = 0; i < 4; ++i){
         laserCornerPoints[i] = calculatePositionFromAngle(LASER_VERTICAL_DISTANCE, laserAngels[i*2], laserAngels[i*2+1]);
     }
     Mat perspectiveMatrix = cv::getPerspectiveTransform(originalCornerPoints, laserCornerPoints);
-    cv::namedWindow("Camera Output", 1);
+    cv::namedWindow("Snapshot", cv::WINDOW_NORMAL);
+    cout << "Start Challenge 3" << endl;
     while(true){
-        Mat snapshot;
-        cv::VideoCapture cameraHandle(0);
-        if (!cameraHandle.isOpened()){
-            cerr << "Cannot open camera" << endl;;
-            exit(-1);
-        }
-        cameraHandle.set(CV_CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH);
-        cameraHandle.set(CV_CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT);
-        cameraHandle.read(snapshot);
-        cameraHandle.release();
+        Mat snapshot = readImageFromCamera();
         Mat squareImage = clipSquareImage(snapshot, cornerPoints);
-        cv::imshow("Camera Output", squareImage);
+        cv::imshow("Snapshot", squareImage);
         cv::waitKey(500);
-        cv::destroyAllWindows();
+        cv::destroyWindow("Snapshot");
 
         vector<Mat> smallImages = splitIntoSmallImage(squareImage);
         for (uint i = 0; i < smallImages.size(); ++i){
             std::ostringstream oss;
-            oss << "image_" << i << ".jpg";
+            oss << "cut_result/image_" << i << ".jpg";
             cv::imwrite(oss.str(), smallImages.at(i));
             Prediction prediction = classifier.classify(smallImages.at(i));
             if (prediction.first == TRUCK_LABEL || prediction.first == CAT_LABEL || prediction.first == TRUCK_LABEL){

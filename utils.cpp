@@ -13,42 +13,45 @@ void onMouseCallback(int event, int x, int y, int flags, void* parameter)
     }
 }
 
+Mat readImageFromCamera()
+{
+	int result = system("gphoto2 --capture-image-and-download --force-overwrite --filename snapshot.jpg");
+	if ( result == -1){
+		cerr << "Camera snashpt error" << endl;
+		exit(-1);
+	}
+	Mat snapshot = cv::imread("snapshot.jpg");
+	return snapshot;
+}
+
 vector<Point2f> selectCornerPointsFromCamera()
 {
     static const string WINDOW_NAME = "Camera Output";
     vector<Point2f> cornerPoints;
-    cv::VideoCapture cameraHandle(0);
-    if (!cameraHandle.isOpened()){
-        cerr << "Cannot open camera" << endl;
-        exit(1);
-    }
-    cameraHandle.set(CV_CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH);
-    cameraHandle.set(CV_CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT);
-
-    cv::namedWindow(WINDOW_NAME, 1);
-    //cv::resizeWindow(WINDOW_NAME, CAMERA_WIDTH*0.5, CAMERA_HEIGHT*0.5);
+    
+    const Mat snapshot = readImageFromCamera();
+    cv::namedWindow(WINDOW_NAME, cv::WINDOW_NORMAL);
     cv::setMouseCallback(WINDOW_NAME, onMouseCallback, &cornerPoints);
 
-    while(true){
-        Mat snapshot;
-        cameraHandle >> snapshot;
-        for (uint i = 0; i < cornerPoints.size(); ++i){
-            cv::circle(snapshot, cornerPoints.at(i), 3, cv::Scalar(0, 0, 255), -1);
-        }
-        imshow(WINDOW_NAME, snapshot);
-        char c = cv::waitKey(100);
-        if (c == 'r' && !cornerPoints.empty()){
-            cornerPoints.pop_back();
-            cout << cornerPoints.size() << " points left" << endl;
-        }
-        else if ( c == 'q' && cornerPoints.size() == 4){
-            cv::setMouseCallback(WINDOW_NAME, NULL, NULL);
-            cout << "Finish setting corner points" << endl;
-            break;
-        }
-    }
-    cv::destroyWindow(WINDOW_NAME);
-    cameraHandle.release();
+	while(true){
+		Mat snapshotCopy = snapshot.clone();
+		for (uint i = 0; i < cornerPoints.size(); ++i){
+			cv::circle(snapshotCopy, cornerPoints.at(i), 5, cv::Scalar(0, 0, 255), -1);
+		}
+		imshow(WINDOW_NAME, snapshotCopy);
+		char c = cv::waitKey(100);
+		if (c == 'r' && !cornerPoints.empty()){
+			cornerPoints.pop_back();
+			cout << cornerPoints.size() << " points left" << endl;
+		}
+		else if ( c == 'q' && cornerPoints.size() == 4){
+			cv::setMouseCallback(WINDOW_NAME, NULL, NULL);
+			cout << "Finish setting corner points" << endl;
+			break;
+		}
+	}
+	
+	cv::destroyWindow(WINDOW_NAME);
     return cornerPoints;
 }
 
@@ -60,19 +63,23 @@ Mat clipSquareImage(const Mat &snapshot, const vector<Point2f> &cornerPoints)
 
     Mat squareImage = Mat(IMAGE_PATCH_HEIGHT, IMAGE_PATCH_WIDTH, snapshot.type());
     const Mat perspectiveTransformMatrix = cv::getPerspectiveTransform(cameraCoordinate, patchCoordinate);
-    warpPerspective(snapshot, squareImage, perspectiveTransformMatrix, squareImage.size(), cv::INTER_LINEAR);
+    cv::warpPerspective(snapshot, squareImage, perspectiveTransformMatrix, squareImage.size(), cv::INTER_NEAREST);
 
     return squareImage;
 }
 
 vector<Mat> splitIntoSmallImage(const Mat &squareImage)
 {
-    static const uint SMALL_IMAGE_SIZE = 32;
+    static const uint SQUARE_IMAGE_SIZE = 128;
+    static const cv::Size CIFAR10_IMAGE_SIZE(32, 32);
     vector<Mat> smallImage;
     smallImage.reserve(256);
-    for(uint i = 0; i < IMAGE_PATCH_HEIGHT; i+=SMALL_IMAGE_SIZE){
-        for(uint j = 0; j < IMAGE_PATCH_WIDTH; j+=SMALL_IMAGE_SIZE){
-            smallImage.push_back( Mat(squareImage, cv::Rect(i, j, SMALL_IMAGE_SIZE, SMALL_IMAGE_SIZE)));
+    for(uint i = 0; i < IMAGE_PATCH_WIDTH; i+=SQUARE_IMAGE_SIZE){
+        for(uint j = 0; j < IMAGE_PATCH_HEIGHT; j+=SQUARE_IMAGE_SIZE){
+            Mat largeSquare(squareImage, cv::Rect(i, j, SQUARE_IMAGE_SIZE, SQUARE_IMAGE_SIZE));
+            Mat smallSquare;
+            resize(largeSquare, smallSquare, CIFAR10_IMAGE_SIZE, cv::INTER_NEAREST);
+            smallImage.push_back( smallSquare);
         }
     }
     return smallImage;
@@ -80,6 +87,7 @@ vector<Mat> splitIntoSmallImage(const Mat &squareImage)
 
 TcpConnection::TcpConnection(const string ip, const short int port)
 {
+	cout << "Connect to " << ip << ":" << port << endl;
     m_clientSocket = socket(AF_INET,SOCK_STREAM,0);
     if(m_clientSocket < 0){
         cerr << "socket creation failed : " << strerror(errno) << endl;
