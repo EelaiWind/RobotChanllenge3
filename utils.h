@@ -47,7 +47,7 @@ public:
     void readAngles(double *angles);
     void sendAngle(double x, double y);
 private:
-    static const  uint BUFFER_SIZE = 1024;
+    static const  uint BUFFER_SIZE = 2048;
     int m_clientSocket;
 };
 
