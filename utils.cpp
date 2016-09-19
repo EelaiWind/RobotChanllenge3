@@ -7,7 +7,7 @@ void onMouseCallback(int event, int x, int y, int flags, void* parameter)
         vector<Point2f> *cornerPoints = (vector<Point2f> *)parameter;
         if ( cornerPoints->size() < 4){
             cornerPoints->push_back(Point2d(x, y));
-            cout << "Select point " << cornerPoints->size() << " = (" << x << ", " << y << ")" << endl;
+            cout << "  Select point " << cornerPoints->size() << " = (" << x << ", " << y << ")" << endl;
         }
 
     }
@@ -15,11 +15,7 @@ void onMouseCallback(int event, int x, int y, int flags, void* parameter)
 
 Mat readImageFromCamera()
 {
-	int result = system("gphoto2 --capture-image-and-download --force-overwrite --filename snapshot.jpg");
-	if ( result == -1){
-		cerr << "Camera snashpt error" << endl;
-		exit(-1);
-	}
+	system("gphoto2 --capture-image-and-download --force-overwrite --filename snapshot.jpg");
 	Mat snapshot = cv::imread("snapshot.jpg");
 	return snapshot;
 }
@@ -42,11 +38,11 @@ vector<Point2f> selectCornerPointsFromCamera()
 		char c = cv::waitKey(100);
 		if (c == 'r' && !cornerPoints.empty()){
 			cornerPoints.pop_back();
-			cout << cornerPoints.size() << " points left" << endl;
+			cout << "  " << cornerPoints.size() << " points left" << endl;
 		}
 		else if ( c == 'q' && cornerPoints.size() == 4){
 			cv::setMouseCallback(WINDOW_NAME, NULL, NULL);
-			cout << "Finish setting corner points" << endl;
+			cout << "  " << "Finish setting corner points" << endl;
 			break;
 		}
 	}
@@ -136,7 +132,7 @@ void TcpConnection::sendAngle(double x, double y)
         cerr << "send angle error! : " << strerror(errno) << endl;
         exit(-1);
     }
-    cout << "[Client] send: " << sendBuffer << endl;
+    cout << "  Tcp client send: " << sendBuffer << endl;
 }
 
 Point2d calculatePerspectivePoint(const Mat &perspectivTransformMatrix, const Point2d &sourcePoint)
